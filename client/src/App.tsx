@@ -4,39 +4,35 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
+import Home, { AboutPage, AcademicsPage, AdmissionsPage, AdminPage, ContactPage, GalleryPage } from "./pages/Home";
 
-function Router() {
-  // make sure to consider if you need authentication for certain routes
-  return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
-  );
+function AdminRoute({ section }: { section?: string }) {
+  return <AdminPage section={section} />;
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
+function Router() {
+  return <Switch>
+    <Route path="/" component={Home} />
+    <Route path="/about" component={AboutPage} />
+    <Route path="/academics" component={AcademicsPage} />
+    <Route path="/admissions" component={AdmissionsPage} />
+    <Route path="/gallery" component={GalleryPage} />
+    <Route path="/contact" component={ContactPage} />
+    <Route path="/admin" component={() => <AdminRoute />} />
+    <Route path="/admin/homepage" component={() => <AdminRoute section="homepage" />} />
+    <Route path="/admin/about" component={() => <AdminRoute section="about" />} />
+    <Route path="/admin/academics" component={() => <AdminRoute section="academics" />} />
+    <Route path="/admin/admissions" component={() => <AdminRoute section="admissions" />} />
+    <Route path="/admin/gallery" component={() => <AdminRoute section="gallery" />} />
+    <Route path="/admin/announcements" component={() => <AdminRoute section="announcements" />} />
+    <Route path="/admin/settings" component={() => <AdminRoute section="settings" />} />
+    <Route path="/404" component={NotFound} />
+    <Route component={NotFound} />
+  </Switch>;
+}
 
 function App() {
-  return (
-    <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
-  );
+  return <ErrorBoundary><ThemeProvider defaultTheme="light"><TooltipProvider><Toaster /><Router /></TooltipProvider></ThemeProvider></ErrorBoundary>;
 }
 
 export default App;

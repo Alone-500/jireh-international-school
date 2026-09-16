@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
@@ -118,6 +118,13 @@ function Logo({ compact = false }: { compact?: boolean }) {
 function SiteShell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    Object.values(STORAGE).forEach((src) => {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = src;
+    });
+  }, []);
   return (
     <div className="min-h-screen bg-cream text-ink">
       <div className="bg-navy text-white">
@@ -144,6 +151,10 @@ function SiteShell({ children }: { children: React.ReactNode }) {
       </header>
       {children}
       <Footer />
+      <a href="tel:+233240496665" className="floating-call" aria-label="Call Jireh International School">
+        <Phone className="h-5 w-5" />
+        <span>Call the school</span>
+      </a>
     </div>
   );
 }
@@ -191,8 +202,6 @@ export default function Home() {
       <section className="section-pad bg-paper"><div className="container grid gap-12 md:grid-cols-[0.7fr_1.3fr] md:items-center"><div><p className="eyebrow">The Jireh difference</p><h2 className="section-title mt-3">Known well. Taught well. Encouraged well.</h2><p className="mt-5 text-base leading-8 text-muted">Small class sizes and attentive teaching help us create a learning environment where questions are welcomed, progress is noticed and every learner is encouraged to participate.</p><Link href="/about" className="text-link mt-7">Our approach <ArrowRight className="h-4 w-4" /></Link></div><div className="grid grid-cols-2 gap-4"><div className="relative col-span-2 overflow-hidden rounded-[2rem] sm:col-span-1"><img src={STORAGE.life} alt="Learners together at Jireh" className="h-72 w-full object-cover sm:h-[380px]" /></div><div className="grid gap-4 sm:pt-14"><div className="relative overflow-hidden rounded-[2rem]"><img src={STORAGE.learning} alt="Learning at Jireh" className="h-44 w-full object-cover" /></div><div className="rounded-[2rem] bg-blue p-6 text-white"><Users className="h-6 w-6 text-gold" /><p className="mt-5 font-display text-2xl leading-tight">Every learner has a next step.</p></div></div></div></div></section>
 
       <section className="section-pad border-y border-blue/10 bg-cream"><div className="container"><div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><SectionIntro eyebrow="A glimpse of Jireh" title="Learning looks different every day." body="Explore a small selection of moments from school life, learning and activities." /><Link href="/gallery" className="text-link shrink-0">Open gallery <ArrowRight className="h-4 w-4" /></Link></div><div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">{galleryItems.slice(0, 4).map((item, index) => <Link href="/gallery" key={item.src} className={`group relative overflow-hidden rounded-[1.5rem] ${index === 0 ? "md:col-span-2 md:row-span-2" : ""}`}><img src={item.src} alt={item.title} className={`w-full object-cover transition duration-500 group-hover:scale-105 ${index === 0 ? "h-[390px]" : "h-[185px]"}`} /><div className="absolute inset-x-0 bottom-0 bg-navy/75 p-4 text-white"><p className="text-xs font-bold uppercase tracking-widest text-gold">{item.category}</p><p className="mt-1 font-display text-lg">{item.title}</p></div></Link>)}</div></div></section>
-
-      <section className="bg-gold"><div className="container grid gap-8 py-14 md:grid-cols-[1fr_auto] md:items-center"><div><p className="text-xs font-bold uppercase tracking-[0.2em] text-navy/65">Admissions are a conversation</p><h2 className="mt-3 max-w-2xl font-display text-3xl font-semibold leading-tight text-navy md:text-4xl">Let’s find the right next step for your family.</h2><p className="mt-3 max-w-xl text-sm leading-7 text-navy/70">{content.admissionsNote}</p></div><Link href="/admissions" className="inline-flex items-center justify-center rounded-full bg-navy px-6 py-3.5 text-sm font-bold text-white transition hover:bg-blue">Start an enquiry <ArrowRight className="ml-2 h-4 w-4" /></Link></div></section>
 
       <section className="bg-paper"><div className="container grid gap-10 py-16 md:grid-cols-[1fr_0.8fr] md:items-center"><div><p className="eyebrow">Find us in Ghana</p><h2 className="section-title mt-3">Two campuses, one connected community.</h2><p className="mt-5 max-w-xl text-base leading-8 text-muted">Visit the Junior Campus in Ashaiman or reach out to the Senior Campus at Community 22 Annex. Our team will be glad to help.</p></div><div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1"><div className="border-l-2 border-gold pl-5"><p className="text-xs font-bold uppercase tracking-widest text-blue">Junior Campus</p><p className="mt-2 text-sm leading-6 text-navy">3 Ardi-Nortey Street, Lebanon Zone 2, Ashaiman, Ghana</p></div><div className="border-l-2 border-blue pl-5"><p className="text-xs font-bold uppercase tracking-widest text-blue">Senior Campus</p><p className="mt-2 text-sm leading-6 text-navy">GB-076-3504, Community 22 Annex, Ghana</p></div></div></div></section>
     </main>

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ArrowRight,
+  Baby,
   BookOpen,
   Check,
   ChevronDown,
@@ -25,10 +26,10 @@ import {
   HeartHandshake,
   Instagram,
   Lightbulb,
-  Mail,
   Menu,
   Music2,
   Palette,
+  PencilRuler,
   Phone,
   Quote,
   School,
@@ -86,9 +87,9 @@ const galleryItems = [
 ];
 
 const levelCards = [
-  { title: "Early Childhood", age: "Ages and entry details available from admissions", icon: Sparkles, copy: "A warm start where play, language, movement and wonder make learning feel natural." },
-  { title: "Primary", age: "A strong foundation for the years ahead", icon: BookOpen, copy: "Learners build confidence across the core curriculum while developing independence and good habits." },
-  { title: "Junior High", age: "Preparing learners for their next chapter", icon: Target, copy: "A focused, supportive environment that brings academic growth together with character and leadership." },
+  { title: "Early Childhood", age: "Ages and entry details available from admissions", icon: Baby, copy: "A warm start where play, language, movement and wonder make learning feel natural." },
+  { title: "Primary", age: "A strong foundation for the years ahead", icon: PencilRuler, copy: "Learners build confidence across the core curriculum while developing independence and good habits." },
+  { title: "Junior High", age: "Preparing learners for their next chapter", icon: GraduationCap, copy: "A focused, supportive environment that brings academic growth together with character and leadership." },
   { title: "Day & Boarding", age: "Boarding available at the Senior Campus", icon: School, copy: "Families can choose the arrangement that best supports their child’s learning and wellbeing." },
 ];
 
@@ -127,15 +128,6 @@ function SiteShell({ children }: { children: React.ReactNode }) {
   }, []);
   return (
     <div className="min-h-screen bg-cream text-ink">
-      <div className="bg-navy text-white">
-        <div className="container flex min-h-9 items-center justify-between gap-4 text-[11px] font-medium tracking-wide">
-          <p className="hidden sm:block">Impact <span className="text-gold">•</span> Inspire <span className="text-gold">•</span> Empower</p>
-          <div className="ml-auto flex items-center gap-4">
-            <a href="tel:+233240496665" className="inline-flex items-center gap-1.5 hover:text-gold"><Phone className="h-3.5 w-3.5" /> +233 (0) 24 049 6665</a>
-            <a href="mailto:jirehschools@gmail.com" className="hidden items-center gap-1.5 hover:text-gold sm:inline-flex"><Mail className="h-3.5 w-3.5" /> jirehschools@gmail.com</a>
-          </div>
-        </div>
-      </div>
       <header className="sticky top-0 z-40 border-b border-blue/10 bg-cream/95 backdrop-blur">
         <div className="container flex h-[76px] items-center justify-between gap-6">
           <Logo compact />

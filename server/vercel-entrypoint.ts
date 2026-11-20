@@ -1,11 +1,13 @@
-// Source of the committed serverless bundle api/[...slug].js.
+// Source of the committed serverless bundle api/index.js.
 // Rebuild it any time the server changes with (from repo root):
-//   pnpm exec esbuild server/vercel-entrypoint.ts --platform=node --packages=external --bundle --format=esm --outfile="api/[...slug].js"
+//   pnpm exec esbuild server/vercel-entrypoint.ts --platform=node --packages=external --bundle --format=esm --outfile="api/index.js"
 //
-// Why a committed bundle: Vercel's zero-config builder could not trace
-// ../server/_core/app (function crashed with "Cannot find module"), so the
-// api/[...slug].js committed to the repo IS the function — all local code
-// is bundled into it; npm packages stay external and come from package.json.
+// WHY THIS SHAPE:
+// Plain Vercel projects (not Next.js) do not support dynamic filenames in
+// /api — only literal file paths become routes. So /api/trpc/<anything> is
+// funneled in by vercel.json:  { source: "/api/:path*", destination: "/api/index?__apiPath=:path*" }
+// The original query string (e.g. tRPC's ?input=...&batch=1) is preserved by
+// the rewrite, so here we only rebuild the pathname for Express.
 import type { IncomingMessage, ServerResponse } from "node:http";
 import express from "express";
 import { createApp } from "./_core/app";
@@ -19,6 +21,19 @@ try {
   bootError = e as Error;
 }
 
+function toExpressUrl(rawUrl: string | undefined): string {
+  try {
+    const url = new URL(rawUrl ?? "/", "http://localhost");
+    const apiPath = url.searchParams.get("__apiPath");
+    if (!apiPath) return rawUrl ?? "/";
+    url.searchParams.delete("__apiPath");
+    const rest = url.searchParams.toString();
+    return "/api/" + apiPath + (rest ? "?" + rest : "");
+  } catch {
+    return "/";
+  }
+}
+
 export default function handler(req: IncomingMessage, res: ServerResponse) {
   if (bootError) {
     res.statusCode = 500;
@@ -26,5 +41,6 @@ export default function handler(req: IncomingMessage, res: ServerResponse) {
     res.end(`Server error: ${bootError.name}: ${bootError.message}`);
     return;
   }
+  req.url = toExpressUrl(req.url);
   return app!(req, res);
 }

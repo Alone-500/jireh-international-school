@@ -1,7 +1,8 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { useEffect } from "react";
+import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home, { AboutPage, AcademicsPage, AdmissionsPage, AdminPage, ContactPage, GalleryPage } from "./pages/Home";
@@ -10,8 +11,16 @@ function AdminRoute({ section }: { section?: string }) {
   return <AdminPage section={section} />;
 }
 
+function ScrollToTop() {
+  const [location] = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+  return null;
+}
+
 function Router() {
-  return <Switch>
+  return <><ScrollToTop /><Switch>
     <Route path="/" component={Home} />
     <Route path="/about" component={AboutPage} />
     <Route path="/academics" component={AcademicsPage} />
@@ -28,7 +37,7 @@ function Router() {
     <Route path="/admin/settings" component={() => <AdminRoute section="settings" />} />
     <Route path="/404" component={NotFound} />
     <Route component={NotFound} />
-  </Switch>;
+  </Switch></>;
 }
 
 function App() {

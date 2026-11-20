@@ -42,15 +42,15 @@ import {
 import { toast } from "sonner";
 
 const STORAGE = {
-  logo: "/manus-storage/logo1_e7f96a69.png",
-  hero: "/manus-storage/slider1_4c2bf183.png",
-  life: "/manus-storage/M1_53769bbc.png",
-  learning: "/manus-storage/M2_f4d10a5a.png",
-  portrait1: "/manus-storage/blog1_22196026.png",
-  portrait2: "/manus-storage/blog2_471ce717.png",
-  portrait3: "/manus-storage/blog3_2394453e.png",
-  portrait4: "/manus-storage/blog4_b6d7b49e.png",
-  portrait5: "/manus-storage/blog5_287aba62.png",
+  logo: "/images/logo1_e7f96a69.png",
+  hero: "/images/slider1_4c2bf183.png",
+  life: "/images/M1_53769bbc.png",
+  learning: "/images/M2_f4d10a5a.png",
+  portrait1: "/images/blog1_22196026.png",
+  portrait2: "/images/blog2_471ce717.png",
+  portrait3: "/images/blog3_2394453e.png",
+  portrait4: "/images/blog4_b6d7b49e.png",
+  portrait5: "/images/blog5_287aba62.png",
 };
 
 const DEFAULT_CONTENT = {

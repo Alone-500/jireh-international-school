@@ -17,14 +17,14 @@ export function createApp() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-  // tRPC API
-  app.use(
-    "/api/trpc",
-    createExpressMiddleware({
-      router: appRouter,
-      createContext,
-    })
-  );
+  // tRPC API — mounted on two paths so it works regardless of how the
+  // serverless runtime forwards the path after the vercel.json rewrite.
+  const middleware = createExpressMiddleware({
+    router: appRouter,
+    createContext,
+  });
+  app.use("/api/trpc", middleware);
+  app.use("/trpc", middleware);
 
   return app;
 }

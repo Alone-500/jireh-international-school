@@ -1,62 +1,50 @@
 import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
-import { COOKIE_NAME } from "../shared/const";
 import type { TrpcContext } from "./_core/context";
 
-type CookieCall = {
-  name: string;
-  options: Record<string, unknown>;
-};
+type AdminUser = NonNullable<TrpcContext["user"]>;
 
-type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
-
-function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] } {
-  const clearedCookies: CookieCall[] = [];
-
-  const user: AuthenticatedUser = {
-    id: 1,
-    openId: "sample-user",
-    email: "sample@example.com",
-    name: "Sample User",
-    loginMethod: "manus",
-    role: "user",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    lastSignedIn: new Date(),
-  };
-
-  const ctx: TrpcContext = {
+function createContext(user: AdminUser | null): TrpcContext {
+  return {
     user,
     req: {
       protocol: "https",
       headers: {},
     } as TrpcContext["req"],
-    res: {
-      clearCookie: (name: string, options: Record<string, unknown>) => {
-        clearedCookies.push({ name, options });
-      },
-    } as TrpcContext["res"],
+    res: {} as TrpcContext["res"],
   };
-
-  return { ctx, clearedCookies };
 }
 
-describe("auth.logout", () => {
-  it("clears the session cookie and reports success", async () => {
-    const { ctx, clearedCookies } = createAuthContext();
-    const caller = appRouter.createCaller(ctx);
+const adminUser: AdminUser = {
+  id: "00000000-0000-0000-0000-000000000001",
+  email: "owner@example.com",
+  name: "Owner",
+  role: "admin",
+};
 
-    const result = await caller.auth.logout();
+describe("auth", () => {
+  it("auth.me returns the authenticated user", async () => {
+    const caller = appRouter.createCaller(createContext(adminUser));
+    expect(await caller.auth.me()).toEqual(adminUser);
+  });
 
-    expect(result).toEqual({ success: true });
-    expect(clearedCookies).toHaveLength(1);
-    expect(clearedCookies[0]?.name).toBe(COOKIE_NAME);
-    expect(clearedCookies[0]?.options).toMatchObject({
-      maxAge: -1,
-      secure: true,
-      sameSite: "none",
-      httpOnly: true,
-      path: "/",
-    });
+  it("auth.me returns null when not authenticated", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    expect(await caller.auth.me()).toBeNull();
+  });
+
+  it("auth.logout reports success (client-side Supabase sign out)", async () => {
+    const caller = appRouter.createCaller(createContext(adminUser));
+    expect(await caller.auth.logout()).toEqual({ success: true });
+  });
+
+  it("admin-only procedures reject regular signed-in users", async () => {
+    const caller = appRouter.createCaller(createContext({ ...adminUser, role: "user" }));
+    await expect(caller.enquiries.list()).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("admin-only procedures reject anonymous callers", async () => {
+    const caller = appRouter.createCaller(createContext(null));
+    await expect(caller.enquiries.list()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });

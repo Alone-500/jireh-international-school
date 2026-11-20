@@ -14,6 +14,14 @@ function AdminRoute({ section }: { section?: string }) {
 function ScrollToTop() {
   const [location] = useLocation();
   useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (id) {
+      const el = document.getElementById(decodeURIComponent(id));
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+    }
     window.scrollTo(0, 0);
   }, [location]);
   return null;

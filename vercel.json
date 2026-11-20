@@ -1,11 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "buildCommand": "pnpm exec vite build",
+  "buildCommand": "pnpm exec vite build && pnpm exec esbuild api/index.ts --platform=node --packages=external --bundle --format=esm --outfile=api/index.js",
   "outputDirectory": "dist/public",
   "installCommand": "pnpm install",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/index.ts" },
+    { "source": "/api/:path*", "destination": "/api/index.js" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { supabase } from "@/lib/supabase";
+import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -238,7 +238,7 @@ export function ContactPage() {
 function AdminOverview() {
   const { user } = useAuth();
   const enquiries = trpc.enquiries.list.useQuery();
-  return <div className="admin-content"><div className="flex flex-col justify-between gap-4 border-b border-blue/10 pb-6 md:flex-row md:items-end"><div><p className="eyebrow">Jireh content studio</p><h1 className="admin-title">Good to see you, {user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "admin"}.</h1><p className="mt-2 text-sm text-muted">Manage the public school website without the weight of a school ERP.</p></div><Link href="/" target="_blank" className="text-link">View public site <ExternalLink className="h-4 w-4" /></Link></div><div className="mt-8 grid gap-4 md:grid-cols-3"><div className="admin-stat"><p className="text-xs font-bold uppercase tracking-widest text-blue">Public pages</p><p className="mt-3 font-display text-4xl text-navy">06</p><p className="mt-2 text-sm text-muted">Home through Contact</p></div><div className="admin-stat"><p className="text-xs font-bold uppercase tracking-widest text-blue">Gallery items</p><p className="mt-3 font-display text-4xl text-navy">07</p><p className="mt-2 text-sm text-muted">Official school imagery</p></div><div className="admin-stat"><p className="text-xs font-bold uppercase tracking-widest text-blue">Enquiries</p><p className="mt-3 font-display text-4xl text-navy">{enquiries.data?.length ?? 0}</p><p className="mt-2 text-sm text-muted">Submitted from admissions</p></div></div><div className="mt-8 grid gap-5 md:grid-cols-2"><div className="admin-panel"><p className="eyebrow">Quick actions</p><div className="mt-5 grid gap-3"><Link href="/admin/homepage" className="admin-action">Edit homepage content <ArrowRight className="h-4 w-4" /></Link><Link href="/admin/gallery" className="admin-action">Manage gallery <ArrowRight className="h-4 w-4" /></Link><Link href="/admin/admissions" className="admin-action">Review enquiries <ArrowRight className="h-4 w-4" /></Link></div></div><div className="admin-panel bg-navy text-white"><p className="eyebrow text-gold">Keep the story clear</p><p className="mt-4 font-display text-3xl leading-tight">A few thoughtful updates go a long way.</p><p className="mt-4 text-sm leading-7 text-white/65">Use this panel to keep public-facing information current. Student records, fees and school management do not belong here.</p></div></div></div>;
+  return <div className="admin-content"><div className="flex flex-col justify-between gap-4 border-b border-blue/10 pb-6 md:flex-row md:items-end"><div><p className="eyebrow">Jireh content studio</p><h1 className="admin-title">Good to see you, {user?.name?.split(" ")[0] || "admin"}.</h1><p className="mt-2 text-sm text-muted">Manage the public school website without the weight of a school ERP.</p></div><Link href="/" target="_blank" className="text-link">View public site <ExternalLink className="h-4 w-4" /></Link></div><div className="mt-8 grid gap-4 md:grid-cols-3"><div className="admin-stat"><p className="text-xs font-bold uppercase tracking-widest text-blue">Public pages</p><p className="mt-3 font-display text-4xl text-navy">06</p><p className="mt-2 text-sm text-muted">Home through Contact</p></div><div className="admin-stat"><p className="text-xs font-bold uppercase tracking-widest text-blue">Gallery items</p><p className="mt-3 font-display text-4xl text-navy">07</p><p className="mt-2 text-sm text-muted">Official school imagery</p></div><div className="admin-stat"><p className="text-xs font-bold uppercase tracking-widest text-blue">Enquiries</p><p className="mt-3 font-display text-4xl text-navy">{enquiries.data?.length ?? 0}</p><p className="mt-2 text-sm text-muted">Submitted from admissions</p></div></div><div className="mt-8 grid gap-5 md:grid-cols-2"><div className="admin-panel"><p className="eyebrow">Quick actions</p><div className="mt-5 grid gap-3"><Link href="/admin/homepage" className="admin-action">Edit homepage content <ArrowRight className="h-4 w-4" /></Link><Link href="/admin/gallery" className="admin-action">Manage gallery <ArrowRight className="h-4 w-4" /></Link><Link href="/admin/admissions" className="admin-action">Review enquiries <ArrowRight className="h-4 w-4" /></Link></div></div><div className="admin-panel bg-navy text-white"><p className="eyebrow text-gold">Keep the story clear</p><p className="mt-4 font-display text-3xl leading-tight">A few thoughtful updates go a long way.</p><p className="mt-4 text-sm leading-7 text-white/65">Use this panel to keep public-facing information current. Student records, fees and school management do not belong here.</p></div></div></div>;
 }
 
 function AdminEditor({ section }: { section: "homepage" | "about" | "academics" }) {
@@ -278,61 +278,17 @@ function AdminSettings() {
   return <div className="admin-content"><p className="eyebrow">Site settings</p><h1 className="admin-title">School identity & contacts</h1><p className="mt-2 max-w-2xl text-sm leading-7 text-muted">The supplied contact information is already reflected across the public site. Keep this checklist nearby when future updates are needed.</p><div className="mt-8 grid gap-4 md:grid-cols-2">{[["School name", "Jireh International School"], ["Motto", "Impact • Inspire • Empower"], ["Tagline", "Quality for Success"], ["Email", "jirehschools@gmail.com"], ["Phone", "+233 (0) 24 049 6665 / +233 (0) 54 117 1496"], ["Website", "jirehschools.com"]].map(([label, value]) => <div className="admin-panel" key={label}><p className="text-xs font-bold uppercase tracking-widest text-blue">{label}</p><p className="mt-3 text-lg font-semibold text-navy">{value}</p></div>)}</div></div>;
 }
 
-function AdminLoginForm() {
-  const utils = trpc.useUtils();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  return (
-    <form
-      className="mt-7 grid gap-4 text-left"
-      onSubmit={async (event) => {
-        event.preventDefault();
-        setBusy(true);
-        setError(null);
-        const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-        if (signInError) {
-          setError(signInError.message);
-        } else {
-          await utils.auth.me.invalidate();
-        }
-        setBusy(false);
-      }}
-    >
-      <div>
-        <Label htmlFor="admin-email">Email</Label>
-        <Input id="admin-email" type="email" required autoComplete="username" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} />
-      </div>
-      <div>
-        <Label htmlFor="admin-password">Password</Label>
-        <Input id="admin-password" type="password" required autoComplete="current-password" placeholder="Your password" value={password} onChange={(event) => setPassword(event.target.value)} />
-      </div>
-      {error ? <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p> : null}
-      <Button type="submit" disabled={busy} className="w-full rounded-full bg-blue text-white hover:bg-navy">{busy ? "Signing in…" : "Sign in"}</Button>
-    </form>
-  );
-}
-
 export function AdminPage({ section = "dashboard" }: { section?: string }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-cream text-muted">Loading admin…</div>;
-  if (!user) return <div className="flex min-h-screen items-center justify-center bg-cream px-6"><div className="max-w-md text-center"><img src={STORAGE.logo} alt="" className="mx-auto h-20 w-20 object-contain" /><h1 className="mt-6 font-display text-4xl text-navy">Admin access</h1><p className="mt-4 text-sm leading-7 text-muted">Sign in with your admin account to manage public school website content.</p><AdminLoginForm /></div></div>;
+  if (!user) return <div className="flex min-h-screen items-center justify-center bg-cream px-6"><div className="max-w-md text-center"><img src={STORAGE.logo} alt="" className="mx-auto h-20 w-20 object-contain" /><h1 className="mt-6 font-display text-4xl text-navy">Admin access</h1><p className="mt-4 text-sm leading-7 text-muted">Sign in to manage public school website content.</p><Button className="mt-7 rounded-full bg-blue text-white hover:bg-navy" onClick={() => startLogin()}>Sign in</Button></div></div>;
   if (user.role !== "admin") return <div className="flex min-h-screen items-center justify-center bg-cream px-6"><div className="max-w-md text-center"><h1 className="font-display text-4xl text-navy">Admin access is restricted</h1><p className="mt-4 text-sm leading-7 text-muted">This area is reserved for authorised Jireh content editors.</p><Link href="/" className="text-link mt-7">Return to public site <ArrowRight className="h-4 w-4" /></Link></div></div>;
   return <div className="min-h-screen bg-cream"><AdminLayout><>{section === "dashboard" && <AdminOverview />}{section === "homepage" && <AdminEditor section="homepage" />}{section === "about" && <AdminEditor section="about" />}{section === "academics" && <AdminEditor section="academics" />}{section === "admissions" && <AdminEnquiries />}{section === "gallery" && <AdminGallery />}{section === "announcements" && <AdminAnnouncements />}{section === "settings" && <AdminSettings />}</></AdminLayout></div>;
-}
-
-function AdminSignOutButton() {
-  const { logout } = useAuth();
-  return (
-    <button onClick={() => logout()} className="flex w-full items-center gap-2 px-6 py-4 text-sm text-white/60 transition hover:text-gold">Sign out</button>
-  );
 }
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const links = [{ label: "Dashboard", href: "/admin", icon: Compass }, { label: "Homepage", href: "/admin/homepage", icon: Sparkles }, { label: "About", href: "/admin/about", icon: HeartHandshake }, { label: "Academics", href: "/admin/academics", icon: BookOpen }, { label: "Admissions", href: "/admin/admissions", icon: GraduationCap }, { label: "Gallery", href: "/admin/gallery", icon: Palette }, { label: "Announcements", href: "/admin/announcements", icon: Send }, { label: "Site settings", href: "/admin/settings", icon: Zap }];
-  return <div className="flex min-h-screen"><aside className={`hidden border-r border-blue/10 bg-navy text-white transition-all md:flex md:flex-col ${collapsed ? "w-20" : "w-64"}`}><div className="flex h-20 items-center gap-3 border-b border-white/10 px-5"><img src={STORAGE.logo} alt="" className="h-10 w-10 object-contain" />{!collapsed && <div><p className="font-display text-lg">Jireh</p><p className="text-[9px] uppercase tracking-[0.2em] text-gold">Content studio</p></div>}</div><nav className="flex-1 space-y-1 px-3 py-5">{links.map((link) => <Link key={link.href} href={link.href} className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${location === link.href ? "bg-gold font-bold text-navy" : "text-white/65 hover:bg-white/10 hover:text-white"}`}><link.icon className="h-4 w-4 shrink-0" />{!collapsed && link.label}</Link>)}</nav><button onClick={() => setCollapsed((value) => !value)} className="m-3 rounded-xl border border-white/10 px-3 py-3 text-left text-xs text-white/60 hover:text-white">{collapsed ? "Expand" : "Collapse menu"}</button><div className="border-t border-white/10 py-2"><Link href="/" className="block px-6 py-4 text-sm text-white/60 hover:text-gold">← Public site</Link><AdminSignOutButton /></div></aside><div className="flex min-w-0 flex-1 flex-col"><div className="flex h-16 items-center justify-between border-b border-blue/10 bg-paper px-5 md:px-8"><div className="flex items-center gap-3 md:hidden"><img src={STORAGE.logo} alt="" className="h-9 w-9 object-contain" /><span className="font-display text-lg text-navy">Jireh content studio</span></div><span className="hidden text-xs font-bold uppercase tracking-widest text-blue md:block">Public website content only</span><Link href="/" className="text-sm font-semibold text-blue hover:text-navy">View site <ExternalLink className="ml-1 inline h-4 w-4" /></Link></div><div className="flex-1 overflow-auto p-5 md:p-10">{children}</div></div></div>;
+  return <div className="flex min-h-screen"><aside className={`hidden border-r border-blue/10 bg-navy text-white transition-all md:flex md:flex-col ${collapsed ? "w-20" : "w-64"}`}><div className="flex h-20 items-center gap-3 border-b border-white/10 px-5"><img src={STORAGE.logo} alt="" className="h-10 w-10 object-contain" />{!collapsed && <div><p className="font-display text-lg">Jireh</p><p className="text-[9px] uppercase tracking-[0.2em] text-gold">Content studio</p></div>}</div><nav className="flex-1 space-y-1 px-3 py-5">{links.map((link) => <Link key={link.href} href={link.href} className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${location === link.href ? "bg-gold font-bold text-navy" : "text-white/65 hover:bg-white/10 hover:text-white"}`}><link.icon className="h-4 w-4 shrink-0" />{!collapsed && link.label}</Link>)}</nav><button onClick={() => setCollapsed((value) => !value)} className="m-3 rounded-xl border border-white/10 px-3 py-3 text-left text-xs text-white/60 hover:text-white">{collapsed ? "Expand" : "Collapse menu"}</button><Link href="/" className="border-t border-white/10 px-6 py-5 text-sm text-white/60 hover:text-gold">← Public site</Link></aside><div className="flex min-w-0 flex-1 flex-col"><div className="flex h-16 items-center justify-between border-b border-blue/10 bg-paper px-5 md:px-8"><div className="flex items-center gap-3 md:hidden"><img src={STORAGE.logo} alt="" className="h-9 w-9 object-contain" /><span className="font-display text-lg text-navy">Jireh content studio</span></div><span className="hidden text-xs font-bold uppercase tracking-widest text-blue md:block">Public website content only</span><Link href="/" className="text-sm font-semibold text-blue hover:text-navy">View site <ExternalLink className="ml-1 inline h-4 w-4" /></Link></div><div className="flex-1 overflow-auto p-5 md:p-10">{children}</div></div></div>;
 }

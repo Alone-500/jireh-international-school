@@ -44,6 +44,15 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+function friendlyError(error: unknown, fallback = "Something went wrong. Please try again."): string {
+  console.error("[ui] action failed:", error);
+  const message = (error as { message?: string })?.message ?? "";
+  if (/Failed query|params:|ECONN|ETIMEDOUT|ENOTFOUND|CERT|Tenant or user|password authentication/i.test(message)) {
+    return "The database is unreachable right now — the change was not saved. Please try again in a moment.";
+  }
+  return message.split("\n")[0].slice(0, 140) || fallback;
+}
+
 const STORAGE = {
   logo: "/images/logo1_e7f96a69.png",
   hero: "/images/slider1_4c2bf183.png",
@@ -230,7 +239,7 @@ export function AcademicsPage() {
 
 function EnquiryForm() {
   const [submitted, setSubmitted] = useState(false);
-  const mutation = trpc.enquiries.submit.useMutation({ onSuccess: () => setSubmitted(true), onError: (error) => toast.error(error.message || "Please check the form and try again.") });
+  const mutation = trpc.enquiries.submit.useMutation({ onSuccess: () => setSubmitted(true), onError: (error) => toast.error(friendlyError(error, "Please check the form and try again.")) });
   const [form, setForm] = useState({ parentName: "", phone: "", email: "", studentName: "", studentAge: "", classApplying: "", dayBoarding: "Day", message: "" });
   const update = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value }));
   if (submitted) return <div className="rounded-[1.5rem] bg-blue p-8 text-white"><div className="flex h-12 w-12 items-center justify-center rounded-full bg-gold text-navy"><Check /></div><h3 className="mt-6 font-display text-3xl font-semibold">Thank you for reaching out.</h3><p className="mt-3 max-w-lg text-sm leading-7 text-white/70">Your enquiry has been received. The school team can follow up using the details you shared.</p><button className="mt-6 text-sm font-bold text-gold underline underline-offset-4" onClick={() => setSubmitted(false)}>Send another enquiry</button></div>;
@@ -263,7 +272,7 @@ function AdminOverview() {
 
 function AdminEditor({ section }: { section: "homepage" | "about" | "academics" }) {
   const content = useSiteContent();
-  const update = trpc.content.update.useMutation({ onSuccess: () => toast.success("Content saved to the public site."), onError: (error) => toast.error(error.message) });
+  const update = trpc.content.update.useMutation({ onSuccess: () => toast.success("Content saved to the public site."), onError: (error) => toast.error(friendlyError(error)) });
   const fields = section === "homepage" ? [
     ["heroEyebrow", "Hero eyebrow", content.heroEyebrow], ["heroTitle", "Hero headline", content.heroTitle], ["heroBody", "Hero welcome statement", content.heroBody], ["intro", "Homepage introduction", content.intro],
   ] : section === "about" ? [["leadershipMessage", "Leadership message", content.leadershipMessage], ["intro", "School introduction", content.intro]] : [["admissionsNote", "Admissions note", content.admissionsNote], ["intro", "Academic overview intro", content.intro]];
@@ -280,7 +289,7 @@ function AdminGallery() {
   const [editedTitles, setEditedTitles] = useState<Record<string, string>>({});
   const update = trpc.content.update.useMutation({
     onSuccess: () => { utils.content.getPublic.invalidate(); },
-    onError: (error) => toast.error(`Could not save the gallery: ${error.message}`),
+    onError: (error) => toast.error(friendlyError(error, "Could not save the gallery.")),
   });
   const persist = (next: GalleryItem[], successMessage?: string) => {
     const value = JSON.stringify(next);
@@ -332,9 +341,9 @@ function AdminEnquiries() {
 function AdminAnnouncements() {
   const utils = trpc.useUtils();
   const announcements = trpc.announcements.list.useQuery();
-  const create = trpc.announcements.create.useMutation({ onSuccess: () => { utils.announcements.list.invalidate(); setDraft({ title: "", category: "News", excerpt: "", published: 1 }); toast.success("Announcement created."); }, onError: (error) => toast.error(error.message) });
-  const update = trpc.announcements.update.useMutation({ onSuccess: () => { utils.announcements.list.invalidate(); setEditing(null); toast.success("Announcement updated."); }, onError: (error) => toast.error(error.message) });
-  const remove = trpc.announcements.remove.useMutation({ onSuccess: () => { utils.announcements.list.invalidate(); toast.success("Announcement deleted."); }, onError: (error) => toast.error(error.message) });
+  const create = trpc.announcements.create.useMutation({ onSuccess: () => { utils.announcements.list.invalidate(); setDraft({ title: "", category: "News", excerpt: "", published: 1 }); toast.success("Announcement created."); }, onError: (error) => toast.error(friendlyError(error)) });
+  const update = trpc.announcements.update.useMutation({ onSuccess: () => { utils.announcements.list.invalidate(); setEditing(null); toast.success("Announcement updated."); }, onError: (error) => toast.error(friendlyError(error)) });
+  const remove = trpc.announcements.remove.useMutation({ onSuccess: () => { utils.announcements.list.invalidate(); toast.success("Announcement deleted."); }, onError: (error) => toast.error(friendlyError(error)) });
   const [draft, setDraft] = useState({ title: "", category: "News", excerpt: "", published: 1 });
   const [editing, setEditing] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState({ title: "", category: "News", excerpt: "", published: 1 });

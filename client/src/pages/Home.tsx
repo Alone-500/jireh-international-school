@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
@@ -103,7 +103,23 @@ const activityCards = [
 
 function useSiteContent() {
   const { data } = trpc.content.getPublic.useQuery(undefined, { staleTime: 300000 });
-  return useMemo(() => ({ ...DEFAULT_CONTENT, ...(data ?? {}) }), [data]);
+  return useMemo((): Record<string, string> & typeof DEFAULT_CONTENT => ({ ...DEFAULT_CONTENT, ...(data ?? {}) }), [data]);
+}
+type GalleryItem = { src: string; title: string; category: string };
+const GALLERY_CATEGORIES = ["School Life", "Students", "Academics", "Activities", "Campus"];
+function parseGallery(value: string | undefined): GalleryItem[] | null {
+  if (!value) return null;
+  try {
+    const arr = JSON.parse(value);
+    if (Array.isArray(arr) && arr.every((i) => i && typeof i.src === "string" && typeof i.title === "string" && typeof i.category === "string")) {
+      return arr.slice(0, 60);
+    }
+  } catch { /* fall through to defaults */ }
+  return null;
+}
+function useGallery() {
+  const content = useSiteContent();
+  return useMemo(() => parseGallery(content.galleryItems) ?? galleryItems, [content.galleryItems]);
 }
 
 function Logo({ compact = false }: { compact?: boolean }) {
@@ -174,6 +190,7 @@ function PageIntro({ eyebrow, title, body }: { eyebrow: string; title: string; b
 
 export default function Home() {
   const content = useSiteContent();
+  const gallery = useGallery();
   const announcements = trpc.announcements.getPublished.useQuery(undefined, { staleTime: 120000 });
   return <SiteShell>
     <main>
@@ -195,7 +212,7 @@ export default function Home() {
 
       <section className="section-pad bg-paper"><div className="container grid gap-12 md:grid-cols-[0.7fr_1.3fr] md:items-center"><div><p className="eyebrow">The Jireh difference</p><h2 className="section-title mt-3">Known well. Taught well. Encouraged well.</h2><p className="mt-5 text-base leading-8 text-muted">Small class sizes and attentive teaching help us create a learning environment where questions are welcomed, progress is noticed and every learner is encouraged to participate.</p><Link href="/about" className="text-link mt-7">Our approach <ArrowRight className="h-4 w-4" /></Link></div><div className="grid grid-cols-2 gap-4"><div className="relative col-span-2 overflow-hidden rounded-[2rem] sm:col-span-1"><img src={STORAGE.life} alt="Learners together at Jireh" className="h-72 w-full object-cover sm:h-[380px]" /></div><div className="grid gap-4 sm:pt-14"><div className="relative overflow-hidden rounded-[2rem]"><img src={STORAGE.learning} alt="Learning at Jireh" className="h-44 w-full object-cover" /></div><div className="rounded-[2rem] bg-blue p-6 text-white"><Users className="h-6 w-6 text-gold" /><p className="mt-5 font-display text-2xl leading-tight">Every learner has a next step.</p></div></div></div></div></section>
 
-      <section className="section-pad border-y border-blue/10 bg-cream"><div className="container"><div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><SectionIntro eyebrow="A glimpse of Jireh" title="Learning looks different every day." body="Explore a small selection of moments from school life, learning and activities." /><Link href="/gallery" className="text-link shrink-0">Open gallery <ArrowRight className="h-4 w-4" /></Link></div><div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">{galleryItems.slice(0, 4).map((item, index) => <Link href="/gallery" key={item.src} className={`group relative overflow-hidden rounded-[1.5rem] ${index === 0 ? "md:col-span-2 md:row-span-2" : ""}`}><img src={item.src} alt={item.title} className={`w-full object-cover transition duration-500 group-hover:scale-105 ${index === 0 ? "h-[390px]" : "h-[185px]"}`} /><div className="absolute inset-x-0 bottom-0 bg-navy/75 p-4 text-white"><p className="text-xs font-bold uppercase tracking-widest text-gold">{item.category}</p><p className="mt-1 font-display text-lg">{item.title}</p></div></Link>)}</div></div></section>
+      <section className="section-pad border-y border-blue/10 bg-cream"><div className="container"><div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><SectionIntro eyebrow="A glimpse of Jireh" title="Learning looks different every day." body="Explore a small selection of moments from school life, learning and activities." /><Link href="/gallery" className="text-link shrink-0">Open gallery <ArrowRight className="h-4 w-4" /></Link></div><div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">{gallery.slice(0, 4).map((item, index) => <Link href="/gallery" key={item.src} className={`group relative overflow-hidden rounded-[1.5rem] ${index === 0 ? "md:col-span-2 md:row-span-2" : ""}`}><img src={item.src} alt={item.title} className={`w-full object-cover transition duration-500 group-hover:scale-105 ${index === 0 ? "h-[390px]" : "h-[185px]"}`} /><div className="absolute inset-x-0 bottom-0 bg-navy/75 p-4 text-white"><p className="text-xs font-bold uppercase tracking-widest text-gold">{item.category}</p><p className="mt-1 font-display text-lg">{item.title}</p></div></Link>)}</div></div></section>
 
       <section className="bg-paper"><div className="container grid gap-10 py-16 md:grid-cols-[1fr_0.8fr] md:items-center"><div><p className="eyebrow">Find us in Ghana</p><h2 className="section-title mt-3">Two campuses, one connected community.</h2><p className="mt-5 max-w-xl text-base leading-8 text-muted">Visit the Junior Campus in Ashaiman or reach out to the Senior Campus at Community 22 Annex. Our team will be glad to help.</p></div><div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1"><div className="border-l-2 border-gold pl-5"><p className="text-xs font-bold uppercase tracking-widest text-blue">Junior Campus</p><p className="mt-2 text-sm leading-6 text-navy">3 Ardi-Nortey Street, Lebanon Zone 2, Ashaiman, Ghana</p></div><div className="border-l-2 border-blue pl-5"><p className="text-xs font-bold uppercase tracking-widest text-blue">Senior Campus</p><p className="mt-2 text-sm leading-6 text-navy">GB-076-3504, Community 22 Annex, Ghana</p></div></div></div></section>
     </main>
@@ -227,8 +244,9 @@ export function AdmissionsPage() {
 
 export function GalleryPage() {
   const [active, setActive] = useState("All");
-  const categories = ["All", "School Life", "Students", "Academics", "Activities", "Campus"];
-  const filtered = galleryItems.filter((item) => active === "All" || item.category === active);
+  const gallery = useGallery();
+  const categories = ["All", ...GALLERY_CATEGORIES];
+  const filtered = gallery.filter((item) => active === "All" || item.category === active);
   return <SiteShell><PageIntro eyebrow="Gallery" title="A glimpse of the Jireh experience." body="Explore moments from learning, school life and the activities that help our learners grow." /><main className="section-pad bg-paper"><div className="container"><div className="flex flex-wrap gap-2">{categories.map((category) => <button key={category} onClick={() => setActive(category)} className={`rounded-full px-4 py-2 text-xs font-bold transition ${active === category ? "bg-blue text-white" : "bg-cream text-navy hover:bg-gold"}`}>{category}</button>)}</div><div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{filtered.map((item) => <div key={item.src} className="group overflow-hidden rounded-[1.5rem] bg-cream"><img src={item.src} alt={item.title} className="h-72 w-full object-cover transition duration-500 group-hover:scale-105" /><div className="p-5"><p className="text-xs font-bold uppercase tracking-widest text-gold-deep">{item.category}</p><h2 className="mt-2 font-display text-2xl font-semibold text-navy">{item.title}</h2></div></div>)}</div></div></main></SiteShell>;
 }
 
@@ -255,8 +273,55 @@ function AdminEditor({ section }: { section: "homepage" | "about" | "academics" 
 }
 
 function AdminGallery() {
-  const [items, setItems] = useState(galleryItems);
-  return <div className="admin-content"><div className="flex flex-col justify-between gap-4 border-b border-blue/10 pb-6 md:flex-row md:items-end"><div><p className="eyebrow">Media library</p><h1 className="admin-title">Gallery</h1><p className="mt-2 text-sm text-muted">Official school imagery currently used across the public site.</p></div><Button className="rounded-full bg-blue text-white hover:bg-navy" onClick={() => toast.info("Image uploads are ready for storage wiring in the next content pass.")}>Add image <ArrowRight className="ml-2 h-4 w-4" /></Button></div><div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{items.map((item) => <div key={item.src} className="overflow-hidden rounded-[1.5rem] border border-blue/10 bg-paper"><img src={item.src} alt={item.title} className="h-48 w-full object-cover" /><div className="p-4"><p className="text-xs font-bold uppercase tracking-widest text-gold-deep">{item.category}</p><p className="mt-2 font-display text-xl text-navy">{item.title}</p><button className="mt-4 text-xs font-bold uppercase tracking-wider text-blue" onClick={() => { setItems((current) => current.filter((candidate) => candidate.src !== item.src)); toast.success("Removed from this view."); }}>Remove from view</button></div></div>)}</div></div>;
+  const utils = trpc.useUtils();
+  const items = useGallery();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [editedTitles, setEditedTitles] = useState<Record<string, string>>({});
+  const update = trpc.content.update.useMutation({
+    onSuccess: () => { utils.content.getPublic.invalidate(); },
+    onError: (error) => toast.error(`Could not save the gallery: ${error.message}`),
+  });
+  const persist = (next: GalleryItem[], successMessage?: string) => {
+    const value = JSON.stringify(next);
+    if (value.length > 19000) { toast.error("The gallery is full — remove a few images first."); return; }
+    update.mutate({ key: "gallery_items", value }, { onSuccess: () => { if (successMessage) toast.success(successMessage); } });
+  };
+  const onPick = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (!files.length) return;
+    setUploading(true);
+    const uploaded: GalleryItem[] = [];
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) { toast.error(`${file.name} is not an image.`); continue; }
+      if (file.size > 6 * 1024 * 1024) { toast.error(`${file.name} is larger than 6MB.`); continue; }
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "-").toLowerCase();
+      const path = `items/${crypto.randomUUID()}-${safeName}`;
+      const { error } = await supabase.storage.from("gallery").upload(path, file, { cacheControl: "31536000", upsert: false, contentType: file.type });
+      if (error) {
+        toast.error(`Upload failed for ${file.name}. Is the "gallery" bucket set up in Supabase?`);
+        continue;
+      }
+      const { data } = supabase.storage.from("gallery").getPublicUrl(path);
+      const prettyTitle = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim().replace(/\b\w/g, (c) => c.toUpperCase());
+      uploaded.push({ src: data.publicUrl, title: prettyTitle || "School life", category: "School Life" });
+    }
+    setUploading(false);
+    if (!uploaded.length) return;
+    persist([...items, ...uploaded], `${uploaded.length} image${uploaded.length > 1 ? "s" : ""} added to the gallery.`);
+  };
+  const saveTitle = (src: string) => {
+    const draft = editedTitles[src];
+    if (draft === undefined) return;
+    const next = items.map((item) => (item.src === src ? { ...item, title: draft.trim() || item.title } : item));
+    setEditedTitles((current) => { const copy = { ...current }; delete copy[src]; return copy; });
+    persist(next, "Caption saved.");
+  };
+  const saveCategory = (src: string, category: string) => {
+    persist(items.map((item) => (item.src === src ? { ...item, category } : item)), "Category saved.");
+  };
+  return <div className="admin-content"><input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" multiple className="hidden" onChange={onPick} /><div className="flex flex-col justify-between gap-4 border-b border-blue/10 pb-6 md:flex-row md:items-end"><div><p className="eyebrow">Media library</p><h1 className="admin-title">Gallery</h1><p className="mt-2 text-sm text-muted">Images here appear on the public gallery and the homepage highlight. Add a caption and pick a category on each card.</p></div><Button disabled={uploading} className="rounded-full bg-blue text-white hover:bg-navy" onClick={() => fileRef.current?.click()}>{uploading ? "Uploading…" : "Add image"} <ArrowRight className="ml-2 h-4 w-4" /></Button></div><p className="mt-4 text-xs text-muted">{items.length} image{items.length === 1 ? "" : "s"} on the site · max 6MB each (PNG, JPG, WebP)</p><div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{items.map((item) => <div key={item.src} className="overflow-hidden rounded-[1.5rem] border border-blue/10 bg-paper"><img src={item.src} alt={item.title} className="h-48 w-full object-cover" /><div className="p-4"><select value={item.category} onChange={(event) => saveCategory(item.src, event.target.value)} aria-label="Image category" className="w-full rounded-lg border border-blue/10 bg-cream px-2 py-1.5 text-[10px] font-bold uppercase tracking-widest text-gold-deep">{GALLERY_CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</select><textarea rows={2} value={editedTitles[item.src] ?? item.title} onChange={(event) => setEditedTitles((current) => ({ ...current, [item.src]: event.target.value }))} onBlur={() => saveTitle(item.src)} aria-label="Caption" className="mt-2 w-full resize-none rounded-lg border border-transparent bg-transparent font-display text-lg leading-snug text-navy outline-none transition focus:border-blue/20 focus:bg-white" /><button className="mt-2 text-xs font-bold uppercase tracking-wider text-blue transition hover:text-red-600 disabled:opacity-50" disabled={update.isPending} onClick={() => persist(items.filter((candidate) => candidate.src !== item.src), "Image removed from the site.")}>Remove from site</button></div></div>)}</div></div>;
 }
 
 function AdminEnquiries() {

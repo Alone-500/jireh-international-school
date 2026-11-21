@@ -128,7 +128,10 @@ function parseGallery(value: string | undefined): GalleryItem[] | null {
 }
 function useGallery() {
   const content = useSiteContent();
-  return useMemo(() => parseGallery(content.galleryItems) ?? galleryItems, [content.galleryItems]);
+  return useMemo(
+    () => parseGallery(content.galleryItems) ?? parseGallery(content.gallery_items) ?? galleryItems,
+    [content.galleryItems, content.gallery_items],
+  );
 }
 
 function Logo({ compact = false }: { compact?: boolean }) {
@@ -294,7 +297,7 @@ function AdminGallery() {
   const persist = (next: GalleryItem[], successMessage?: string) => {
     const value = JSON.stringify(next);
     if (value.length > 19000) { toast.error("The gallery is full — remove a few images first."); return; }
-    update.mutate({ key: "gallery_items", value }, { onSuccess: () => { if (successMessage) toast.success(successMessage); } });
+    update.mutate({ key: "galleryItems", value }, { onSuccess: () => { if (successMessage) toast.success(successMessage); } });
   };
   const onPick = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);

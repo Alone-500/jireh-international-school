@@ -31,7 +31,7 @@ export const appRouter = router({
   }),
   content: router({
     getPublic: publicProcedure.query(() => getSiteContent()),
-    update: adminOnlyProcedure.input(z.object({ key: z.string().trim().min(1).max(100), value: z.string().trim().min(1).max(5000) })).mutation(({ ctx, input }) => upsertSiteContent(input.key, input.value, ctx.user.id)),
+    update: adminOnlyProcedure.input(z.object({ key: z.string().trim().min(1).max(100), value: z.string().trim().min(1).max(20000) })).mutation(({ ctx, input }) => upsertSiteContent(input.key, input.value, ctx.user.id)),
   }),
   enquiries: router({
     submit: publicProcedure.input(enquiryInput).mutation(({ input }) => createEnquiry(input)),

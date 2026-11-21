@@ -42,10 +42,9 @@
       @keyframes splash-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
       .splash-name { margin: .5rem 0 0; font-family: Fraunces, Georgia, serif; font-size: 1.35rem; font-weight: 600; color: #ffffff; text-align: center; }
       .splash-tag { margin: 0; font-family: system-ui, -apple-system, sans-serif; font-size: .6rem; font-weight: 700; letter-spacing: .42em; text-transform: uppercase; color: #f6b21a; text-indent: .42em; }
-      .splash-bar { width: 150px; height: 3px; margin-top: .35rem; border-radius: 999px; background: rgba(255,255,255,.12); overflow: hidden; }
-      .splash-bar span { display: block; height: 100%; width: 42%; border-radius: 999px; background: linear-gradient(90deg, transparent, #f6b21a 35%, #ffd95e 55%, #f6b21a 70%, transparent); animation: splash-slide 1.15s ease-in-out infinite; }
-      @keyframes splash-slide { 0% { transform: translateX(-110%); } 100% { transform: translateX(360%); } }
-      @media (prefers-reduced-motion: reduce) { #splash img, .splash-bar span { animation: none; } }
+      .splash-bar { width: 160px; height: 3px; margin-top: .35rem; border-radius: 999px; background: rgba(255,255,255,.12); overflow: hidden; }
+      .splash-bar span { display: block; height: 100%; width: 12%; border-radius: 999px; background: linear-gradient(90deg, #f6b21a, #ffd95e); transition: width .35s ease; }
+      @media (prefers-reduced-motion: reduce) { #splash img, .splash-bar span { animation: none; transition: none; } }
     </style>
   </head>
   <body>
@@ -53,8 +52,22 @@
       <img src="/apple-touch-icon.png" alt="" width="104" height="104" />
       <p class="splash-name">Jireh International School</p>
       <p class="splash-tag">Quality for Success</p>
-      <div class="splash-bar"><span></span></div>
+      <div class="splash-bar"><span id="splash-fill"></span></div>
     </div>
+    <script>
+      /* Real progress: the bar advances with ACTUAL load milestones,
+         not a loop — slow connection, slow bar; fast page, fast bar. */
+      (function () {
+        var fill = document.getElementById("splash-fill");
+        var set = function (p) { if (fill) fill.style.width = p + "%"; };
+        window.__splashProgress = set;
+        set(12);
+        document.addEventListener("DOMContentLoaded", function () { set(55); });
+        window.addEventListener("load", function () { set(90); });
+        if (document.readyState === "interactive" || document.readyState === "complete") set(55);
+        if (document.readyState === "complete") set(90);
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

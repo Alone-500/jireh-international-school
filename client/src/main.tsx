@@ -30,6 +30,21 @@ const trpcClient = trpc.createClient({
   ],
 });
 
+// Dismiss the static splash once React is up — always within 2 seconds.
+const splash = document.getElementById("splash");
+if (splash) {
+  let hidden = false;
+  const hide = () => {
+    if (hidden) return;
+    hidden = true;
+    splash.classList.add("hide");
+    window.setTimeout(() => splash.remove(), 500);
+  };
+  window.setTimeout(hide, 400); // quick path once JS executes
+  window.addEventListener("load", () => window.setTimeout(hide, 250)); // after assets settle
+  window.setTimeout(hide, 2000); // absolute cap — never longer than 2s
+}
+
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>

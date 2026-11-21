@@ -31,6 +31,8 @@ const trpcClient = trpc.createClient({
 });
 
 // Dismiss the static splash once React is up — always within 2 seconds.
+// The progress bar tracks real load milestones (12% paint → 55% DOM ready →
+// 90% assets loaded → 100% when React mounts), so it moves as fast as the page.
 const splash = document.getElementById("splash");
 if (splash) {
   let hidden = false;
@@ -40,8 +42,8 @@ if (splash) {
     splash.classList.add("hide");
     window.setTimeout(() => splash.remove(), 500);
   };
-  window.setTimeout(hide, 400); // quick path once JS executes
-  window.addEventListener("load", () => window.setTimeout(hide, 250)); // after assets settle
+  (window as unknown as { __splashProgress?: (p: number) => void }).__splashProgress?.(100);
+  window.setTimeout(hide, 220); // brief beat so the full bar registers
   window.setTimeout(hide, 2000); // absolute cap — never longer than 2s
 }
 
